@@ -2,7 +2,7 @@ export default async function handler(req, res) {
   const { url } = req.query;
 
   if (!url) {
-    return res.status(400).json({ error: "URL tidak ditemukan" });
+    return res.status(400).json({ success: false, error: "URL tidak ditemukan" });
   }
 
   try {
@@ -14,19 +14,35 @@ export default async function handler(req, res) {
       body: `url=${encodeURIComponent(url)}`,
     });
 
-    const data = await apiRes.json();
+    const result = await apiRes.json();
 
-    if (data?.data) {
-      return res.status(200).json({
-        video: data.data.play || null,
-        audio: data.data.music || null,
-        images: data.data.images || [],
-      });
-    } else {
-      return res.status(500).json({ error: "Gagal mengambil data" });
+    if (!result || !result.data) {
+      return res.status(500).json({ success: false, error: "Gagal mengambil data" });
     }
+
+    const data = result.data;
+    let response = {
+      success: true,
+      result: {}
+    };
+
+    // Cek apakah konten foto atau video
+    if (data.images && data.images.length > 0) {
+      response.result.type = "image";
+      response.result.image = data.images[0]; // ambil foto pertama
+    } else {
+      response.result.type = "video";
+      response.result.video = data.play || data.hdplay || null;
+    }
+
+    // Audio (musik)
+    if (data.music) {
+      response.result.audio = data.music;
+    }
+
+    return res.status(200).json(response);
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Server error" });
+    console.error("Download API Error:", err);
+    return res.status(500).json({ success: false, error: "Server error" });
   }
 }
