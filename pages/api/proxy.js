@@ -5,19 +5,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: "File URL missing" });
     }
 
-    // Fetch file dengan header tambahan
+    // Fetch dengan header tambahan
     const response = await fetch(file, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115 Safari/537.36",
         Referer: "https://www.tikwm.com/",
+        Range: "bytes=0-",
       },
     });
 
-    if (!response.ok) {
+    if (!response.ok || !response.body) {
       return res
-        .status(response.status)
-        .json({ success: false, message: "Gagal fetch file" });
+        .status(response.status || 500)
+        .json({ success: false, message: "Proxy gagal ambil file" });
     }
 
     const safeName = filename ? filename : "RAFZ-TIKLOAD-media";
@@ -28,19 +29,10 @@ export default async function handler(req, res) {
     );
     res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
 
-    // Pipe stream langsung ke response (lebih aman di Vercel)
-    const reader = response.body.getReader();
-    const encoder = new TextEncoder();
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      res.write(Buffer.from(value));
-    }
-
-    res.end();
+    // Pipe langsung ke response
+    response.body.pipe(res);
   } catch (error) {
-    console.error(error);
+    console.error("Proxy Error:", error);
     res
       .status(500)
       .json({ success: false, message: "Server error (proxy failed)" });
