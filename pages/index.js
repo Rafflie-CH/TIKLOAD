@@ -24,7 +24,7 @@ export default function Home() {
       const data = await res.json();
 
       if (!data.success) {
-        alert("Gagal mengambil data");
+        alert("Gagal mengambil data pastikan url sudah benar");
         return;
       }
       setResult(data);
