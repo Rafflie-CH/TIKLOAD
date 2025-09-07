@@ -1,32 +1,39 @@
+// pages/api/download.js
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
-  const { url } = req.body;
-  if (!url) return res.status(400).json({ error: "URL is required" });
-
   try {
-    const apiRes = await fetch("https://www.tikwm.com/api/", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url }),
+    const { url } = req.query;
+
+    if (!url) {
+      return res.status(400).json({ success: false, message: "URL tidak boleh kosong" });
+    }
+
+    // API TikWM (gratis, no watermark)
+    const apiUrl = `https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`;
+
+    const response = await fetch(apiUrl, {
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
 
-    const data = await apiRes.json();
-    if (!data || data.code !== 0) {
-      return res.status(400).json({ error: "Failed to fetch TikTok data" });
+    const data = await response.json();
+
+    if (!data || !data.data) {
+      return res.status(500).json({ success: false, message: "API tidak mengembalikan data" });
     }
 
     const result = {
-      title: data.data.title || "video",
-      type: data.data.images ? "photo" : "video",
-      play: data.data.play || (data.data.images ? data.data.images[0] : null),
-      music: data.data.music,
+      success: true,
+      title: data.data.title || "Video",
+      cover: data.data.cover || null,
+      play: data.data.play || null,
+      music: data.data.music || null,
+      images: data.data.images || [],
     };
 
-    res.status(200).json(result);
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Download API error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 }
