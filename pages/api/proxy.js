@@ -1,21 +1,21 @@
+// pages/api/proxy.js
 export default async function handler(req, res) {
   try {
     const { url, filename } = req.query;
-    if (!url) return res.status(400).json({ error: "URL is required" });
 
-    const fileRes = await fetch(url);
-    if (!fileRes.ok) {
-      return res.status(500).json({ error: "Failed to fetch file" });
+    if (!url) {
+      return res.status(400).send("URL tidak ada");
     }
 
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${filename || "download"}"`
-    );
-    res.setHeader("Content-Type", fileRes.headers.get("content-type"));
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
 
-    fileRes.body.pipe(res);
+    res.setHeader("Content-Disposition", `attachment; filename="${filename || "file"}"`);
+    res.setHeader("Content-Type", response.headers.get("content-type") || "application/octet-stream");
+
+    return res.send(Buffer.from(buffer));
   } catch (err) {
-    res.status(500).json({ error: "Proxy error" });
+    console.error("Proxy error:", err);
+    return res.status(500).send("Gagal proxy file");
   }
 }
