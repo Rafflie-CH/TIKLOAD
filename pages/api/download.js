@@ -1,39 +1,38 @@
 export default async function handler(req, res) {
-  const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).json({ success: false, message: "URL missing" });
-  }
-
   try {
-    const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
-    const data = await response.json();
+    const { url } = req.body;
 
-    if (!data || !data.data) {
-      return res.status(500).json({ success: false, message: "Invalid API response" });
+    if (!url) {
+      return res.status(400).json({ success: false, message: "Missing TikTok URL" });
     }
 
-    const result = data.data;
+    // Request ke API TikWM
+    const apiRes = await fetch("https://www.tikwm.com/api/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+      body: JSON.stringify({ url }),
+    });
 
-    if (result.images) {
-      return res.json({
-        success: true,
-        type: "image",
-        title: result.title || "tiktok",
-        images: result.images,
-      });
-    } else {
-      return res.json({
-        success: true,
-        type: "video",
-        title: result.title || "tiktok",
-        video: result.play || result.wmplay,
-        music: result.music,
-      });
+    const data = await apiRes.json();
+
+    if (data.code !== 0) {
+      return res.status(400).json({ success: false, message: "Gagal mengunduh video" });
     }
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ success: false, message: "Server error" });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        video: data.data.play, // url video
+        music: data.data.music, // url audio
+        cover: data.data.cover, // thumbnail
+      },
+    });
+  } catch (error) {
+    console.error("Download API error:", error);
+    res.status(500).json({ success: false, message: "Server error (download)" });
   }
 }
- 
