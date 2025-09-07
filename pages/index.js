@@ -1,180 +1,176 @@
 import { useState } from "react";
+import Head from "next/head";
 
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
   const [media, setMedia] = useState(null);
   const [error, setError] = useState("");
 
-  const handleDownload = async () => {
+  const fetchDownload = async () => {
+    if (!url) return;
+    setLoading(true);
     setError("");
     setMedia(null);
+
     try {
       const res = await fetch(`/api/download?url=${encodeURIComponent(url)}`);
       const data = await res.json();
 
       if (!data.success) {
-        setError("Gagal mengambil video/foto!");
-        return;
+        setError("Gagal mengambil data, coba periksa URL TikTok.");
+      } else {
+        setMedia(data.result);
       }
-      setMedia(data.result);
     } catch (err) {
       setError("Terjadi kesalahan server.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fungsi paksa download file
-  const triggerDownload = (fileUrl, filename) => {
+  const triggerDownload = (fileUrl) => {
     const link = document.createElement("a");
     link.href = fileUrl;
-    link.download = filename;
-    document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
-      {/* HEADER */}
-      <div className="bg-blue-600 text-white px-6 py-4 rounded-xl shadow mb-6 text-center">
-        <h1 className="text-2xl font-bold">TiKLoad BY RAFZ</h1>
-        <p className="text-sm">Tanpa Watermark dan FREE!!</p>
-      </div>
+    <>
+      <Head>
+        <title>TikTok Downloader</title>
+      </Head>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex flex-col items-center p-6 text-white">
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 drop-shadow-lg">
+          TikTok Downloader
+        </h1>
 
-      {/* INPUT */}
-      <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md text-center">
-        <div className="flex mb-4">
+        {/* Input */}
+        <div className="flex w-full max-w-lg bg-white rounded-xl overflow-hidden shadow-lg">
           <input
             type="text"
-            placeholder="masukkan url tiktok"
+            placeholder="Tempelkan link TikTok di sini..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 p-2 border rounded-l-lg focus:outline-none"
+            className="flex-1 p-3 text-black outline-none"
           />
           <button
-            onClick={handleDownload}
-            className="bg-blue-600 text-white px-4 py-2 rounded-r-lg hover:bg-blue-700"
+            onClick={fetchDownload}
+            className="bg-blue-600 px-4 py-2 hover:bg-blue-700"
           >
-            Download
+            Cari
           </button>
         </div>
 
-        {/* PREVIEW */}
-        <div className="border rounded-lg p-4 bg-gray-50">
-          {!media && <p className="text-gray-400">preview video/foto</p>}
+        {/* Loading / Error */}
+        {loading && <p className="mt-4 animate-pulse">Memproses link...</p>}
+        {error && <p className="mt-4 text-red-300">{error}</p>}
 
-          {media && media.type === "video" && (
-            <video
-              controls
-              src={media.video}
-              className="w-full rounded-lg"
-            ></video>
-          )}
-
-          {media && media.type === "image" && (
-            <img
-              src={media.image}
-              alt="preview"
-              className="w-full rounded-lg"
-            />
-          )}
-        </div>
-
-        {/* TOMBOL DOWNLOAD */}
+        {/* Hasil */}
         {media && (
-          <div className="mt-4 flex flex-col gap-2">
+          <div className="mt-8 w-full max-w-lg bg-white text-black rounded-xl shadow-xl p-4">
+            <h2 className="text-lg font-semibold mb-3">Preview:</h2>
+
             {media.type === "video" && media.video && (
-              <button
-                onClick={() => triggerDownload(media.video, "tiktok_video.mp4")}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Download Video
-              </button>
+              <video
+                src={media.video}
+                controls
+                className="w-full rounded-lg mb-3"
+              />
             )}
+
             {media.type === "image" && media.image && (
-              <button
-                onClick={() => triggerDownload(media.image, "tiktok_photo.jpg")}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Download Foto
-              </button>
+              <img
+                src={media.image}
+                alt="TikTok"
+                className="w-full rounded-lg mb-3"
+              />
             )}
-            {media.audio && (
-              <button
-                onClick={() => triggerDownload(media.audio, "tiktok_audio.mp3")}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
-              >
-                Download Audio
-              </button>
-            )}
+
+            {/* Tombol Download */}
+            <div className="flex flex-col gap-3">
+              {media.type === "video" && media.video && (
+                <button
+                  onClick={() =>
+                    triggerDownload(
+                      `/api/proxy?file=${encodeURIComponent(
+                        media.video
+                      )}&filename=tiktok_video.mp4`
+                    )
+                  }
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Download Video
+                </button>
+              )}
+
+              {media.type === "image" && media.image && (
+                <button
+                  onClick={() =>
+                    triggerDownload(
+                      `/api/proxy?file=${encodeURIComponent(
+                        media.image
+                      )}&filename=tiktok_photo.jpg`
+                    )
+                  }
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                >
+                  Download Foto
+                </button>
+              )}
+
+              {media.audio && (
+                <button
+                  onClick={() =>
+                    triggerDownload(
+                      `/api/proxy?file=${encodeURIComponent(
+                        media.audio
+                      )}&filename=tiktok_audio.mp3`
+                    )
+                  }
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+                >
+                  Download Audio
+                </button>
+              )}
+            </div>
           </div>
         )}
 
-        {/* ERROR */}
-        {error && <p className="text-red-500 mt-3">{error}</p>}
-      </div>
+        {/* Bagian Bawah */}
+        <div className="mt-12 text-center space-y-4">
+          <p
+            className="cursor-pointer hover:underline"
+            onClick={() => alert("Masih dalam pengembangan!")}
+          >
+            Coba produk kami yang lain
+          </p>
 
-      {/* PRODUK LAIN */}
-      <div className="mt-6 text-center">
-        <p className="mb-2 font-semibold">Coba Produk kami yang lain</p>
-        <div className="flex gap-4 justify-center text-blue-600 underline">
           <a
-            href="#"
-            onClick={() => alert("Masih dalam pengembangan!")}
+            href="https://whatsapp.com/channel/0029Vb6dhS29RZAV6wpMYj3W"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 hover:underline"
           >
-            GRAMLOAD
+            <img
+              src="/whatsapp.png"
+              alt="WhatsApp"
+              className="w-5 h-5 inline-block"
+            />
+            <span>Saluran WhatsApp Kami</span>
           </a>
+
           <a
-            href="#"
-            onClick={() => alert("Masih dalam pengembangan!")}
+            href="https://www.tikwm.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-2 mt-2 hover:underline"
           >
-            BOOKLOAD
-          </a>
-          <a
-            href="#"
-            onClick={() => alert("Masih dalam pengembangan!")}
-          >
-            THREADS DL
-          </a>
-          <a
-            href="#"
-            onClick={() => alert("Masih dalam pengembangan!")}
-          >
-            X DL
+            <img src="/tikwm.png" alt="Tikwm" className="w-5 h-5 inline-block" />
+            <span>TIKWM (for API)</span>
           </a>
         </div>
       </div>
-
-      {/* WHATSAPP */}
-      <div className="mt-6">
-        <a
-          href="https://whatsapp.com/channel/0029Vb6dhS29RZAV6wpMYj3W"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-full shadow hover:bg-green-600"
-        >
-          <img src="/whatsapp.png" alt="WhatsApp" className="w-5 h-5" />
-          <span>Saluran WhatsApp kami</span>
-        </a>
-      </div>
-
-      {/* THANKS TO */}
-      <div className="mt-6 text-center">
-        <p className="font-semibold">Thanks To:</p>
-        <a
-          href="https://www.tikwm.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 mt-2"
-        >
-          <img src="/tikwm.png" alt="TIKWM" className="w-6 h-6" />
-          <span>TIKWM (for API)</span>
-        </a>
-      </div>
-
-      {/* FOOTER */}
-      <footer className="mt-6 text-gray-500">
-        Made with ❤️ BY Rafz
-      </footer>
-    </div>
+    </>
   );
 }
