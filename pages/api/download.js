@@ -1,38 +1,32 @@
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
+
+  const { url } = req.body;
+  if (!url) return res.status(400).json({ error: "URL is required" });
+
   try {
-    const { url } = req.body;
-
-    if (!url) {
-      return res.status(400).json({ success: false, message: "Missing TikTok URL" });
-    }
-
-    // Request ke API TikWM
     const apiRes = await fetch("https://www.tikwm.com/api/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     });
 
     const data = await apiRes.json();
-
-    if (data.code !== 0) {
-      return res.status(400).json({ success: false, message: "Gagal mengunduh video" });
+    if (!data || data.code !== 0) {
+      return res.status(400).json({ error: "Failed to fetch TikTok data" });
     }
 
-    res.status(200).json({
-      success: true,
-      data: {
-        video: data.data.play, // url video
-        music: data.data.music, // url audio
-        cover: data.data.cover, // thumbnail
-      },
-    });
-  } catch (error) {
-    console.error("Download API error:", error);
-    res.status(500).json({ success: false, message: "Server error (download)" });
+    const result = {
+      title: data.data.title || "video",
+      type: data.data.images ? "photo" : "video",
+      play: data.data.play || (data.data.images ? data.data.images[0] : null),
+      music: data.data.music,
+    };
+
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
   }
 }
