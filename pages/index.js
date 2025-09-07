@@ -55,7 +55,10 @@ export default function Home() {
     <Head>
   <title>TiKLoad BY RAFZ (Rafflie aditya) - Tiktok Downloader Tanpa Watermark</title>
   <meta name="description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah" />
-  
+
+    {/* Favicon */}
+<link rel="icon" href="/favicon.ico" />
+    
   {/* Open Graph Meta Tags */}
   <meta property="og:title" content="TiKLoad BY RAFZ - Tiktok Downloader" />
   <meta property="og:description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah" />
