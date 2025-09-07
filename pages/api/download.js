@@ -2,47 +2,37 @@ export default async function handler(req, res) {
   const { url } = req.query;
 
   if (!url) {
-    return res.status(400).json({ success: false, error: "URL tidak ditemukan" });
+    return res.status(400).json({ success: false, message: "URL missing" });
   }
 
   try {
-    const apiRes = await fetch("https://www.tikwm.com/api/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: `url=${encodeURIComponent(url)}`,
-    });
+    const response = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(url)}`);
+    const data = await response.json();
 
-    const result = await apiRes.json();
-
-    if (!result || !result.data) {
-      return res.status(500).json({ success: false, error: "Gagal mengambil data" });
+    if (!data || !data.data) {
+      return res.status(500).json({ success: false, message: "Invalid API response" });
     }
 
-    const data = result.data;
-    let response = {
-      success: true,
-      result: {}
-    };
+    const result = data.data;
 
-    // Cek apakah konten foto atau video
-    if (data.images && data.images.length > 0) {
-      response.result.type = "image";
-      response.result.image = data.images[0]; // ambil foto pertama
+    if (result.images) {
+      return res.json({
+        success: true,
+        type: "image",
+        title: result.title || "tiktok",
+        images: result.images,
+      });
     } else {
-      response.result.type = "video";
-      response.result.video = data.play || data.hdplay || null;
+      return res.json({
+        success: true,
+        type: "video",
+        title: result.title || "tiktok",
+        video: result.play || result.wmplay,
+        music: result.music,
+      });
     }
-
-    // Audio (musik)
-    if (data.music) {
-      response.result.audio = data.music;
-    }
-
-    return res.status(200).json(response);
   } catch (err) {
-    console.error("Download API Error:", err);
-    return res.status(500).json({ success: false, error: "Server error" });
+    console.error(err);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 }
