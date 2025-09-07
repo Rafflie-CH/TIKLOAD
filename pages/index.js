@@ -72,7 +72,7 @@ export default function Home() {
         {/* Header */}
         <h1 className="text-center text-lg font-bold text-white bg-blue-600 rounded-lg py-2 mb-4">
           TiKLoad BY RAFZ
-          <span className="block text-xs font-normal">Tiktok Downloader Tanpa Watermark dan 100% FREE!!</span>
+          <span className="block text-xs font-normal">Tiktok Downloader Tanpa Watermark dan 100% FREE!! dan yang pastinya TANPA IKLAN</span>
         </h1>
 
         {/* Input + tombol */}
