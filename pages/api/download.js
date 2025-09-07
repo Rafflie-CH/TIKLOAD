@@ -1,15 +1,30 @@
-import { tiktokDl } from "../../lib/scrape";
-
+// pages/api/download.js
 export default async function handler(req, res) {
   const { url } = req.query;
-  if (!url || typeof url !== "string") {
-    return res.status(400).json({ status: false, message: "URL tidak valid" });
+
+  if (!url) {
+    return res.status(400).json({ error: "URL tidak ditemukan" });
   }
 
-  const result = await tiktokDl(url);
-  if (!result.status) {
-    return res.status(404).json({ status: false, message: "Konten tidak ditemukan" });
-  }
+  try {
+    // Panggil API TikWM
+    const apiRes = await fetch("https://www.tikwm.com/api/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: `url=${encodeURIComponent(url)}`,
+    });
 
-  return res.status(200).json(result);
+    const data = await apiRes.json();
+
+    if (data?.data?.play) {
+      return res.status(200).json({ video: data.data.play });
+    } else {
+      return res.status(500).json({ error: "Gagal mengambil video" });
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
+  }
 }
