@@ -1,61 +1,129 @@
-const form = document.querySelector("form");
-const input = document.querySelector("input");
-const preview = document.getElementById("preview");
-const buttons = document.getElementById("buttons");
-const loading = document.getElementById("loading");
+import { useState } from "react";
+import Head from "next/head";
+import "../public/style.css";
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const url = input.value.trim();
+export default function Home() {
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState("");
 
-  if (!url) {
-    alert("Masukkan URL terlebih dahulu!");
-    return;
-  }
+  const handleDownload = async () => {
+    if (!url.trim()) return;
+    setLoading(true);
+    setError("");
+    setResult(null);
 
-  preview.innerHTML = "";
-  buttons.innerHTML = "";
-  loading.style.display = "flex"; // tampilkan animasi loading
+    try {
+      const res = await fetch("/api/download", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
 
-  try {
-    const res = await fetch(`/api/download?url=${encodeURIComponent(url)}`);
-    const data = await res.json();
-
-    if (!data.success) throw new Error(data.message);
-
-    // tampilkan preview
-    if (data.type === "video") {
-      preview.innerHTML = `
-        <video controls class="rounded-xl w-full shadow">
-          <source src="${data.video}" type="video/mp4">
-          Browser anda tidak mendukung video.
-        </video>
-      `;
-      buttons.innerHTML = `
-        <button onclick="downloadFile('${data.video}', 'video.mp4')" class="download-btn">Unduh Video</button>
-        <button onclick="downloadFile('${data.audio}', 'audio.mp3')" class="download-btn">Unduh Audio</button>
-      `;
-    } else if (data.type === "image") {
-      preview.innerHTML = `
-        <img src="${data.image}" alt="preview" class="rounded-xl w-full shadow">
-      `;
-      buttons.innerHTML = `
-        <button onclick="downloadFile('${data.image}', 'photo.jpg')" class="download-btn">Unduh Foto</button>
-      `;
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setResult(data);
+    } catch (err) {
+      setError("Gagal mengambil data. Pastikan link TikTok valid.");
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    preview.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
-  } finally {
-    loading.style.display = "none"; // sembunyikan loading
-  }
-});
+  };
 
-function downloadFile(fileUrl, filename) {
-  const proxyUrl = `/api/proxy?url=${encodeURIComponent(fileUrl)}`;
-  const link = document.createElement("a");
-  link.href = proxyUrl;
-  link.download = filename || "download";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+  const handleProxyDownload = (fileUrl, type, title) => {
+    const fileName = `RAFZ-TIKLOAD-${title}.${type}`;
+    const link = document.createElement("a");
+    link.href = `/api/proxy?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(fileName)}`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  return (
+    <>
+      <Head>
+        <title>RAFZ TikTok Downloader</title>
+      </Head>
+
+      <div className="container">
+        <h1 className="title">RAFZ TikTok Downloader</h1>
+        <p className="subtitle">Tanpa Watermark dan GRATIS!!</p>
+
+        <div className="input-box">
+          <input
+            type="text"
+            placeholder="Tempelkan link TikTok disini..."
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+          />
+          <button onClick={handleDownload} disabled={loading}>
+            {loading ? "Loading..." : "Cari"}
+          </button>
+        </div>
+
+        {error && <p className="error">{error}</p>}
+
+        {result && (
+          <div className="result">
+            <h2>{result.title}</h2>
+
+            {result.type === "video" && (
+              <>
+                <video controls src={result.play} />
+                <button
+                  onClick={() =>
+                    handleProxyDownload(result.play, "mp4", result.title)
+                  }
+                >
+                  Unduh Video
+                </button>
+              </>
+            )}
+
+            {result.type === "photo" && (
+              <>
+                <img src={result.play} alt="TikTok Photo" />
+                <button
+                  onClick={() =>
+                    handleProxyDownload(result.play, "jpg", result.title)
+                  }
+                >
+                  Unduh Foto
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() =>
+                handleProxyDownload(result.music, "mp3", result.title)
+              }
+            >
+              Unduh Audio
+            </button>
+          </div>
+        )}
+
+        <footer className="footer">
+          <a
+            href="https://www.tikwm.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="tikwm"
+          >
+            <img src="/tikwm-logo.png" alt="tikwm" className="logo" /> TIKWM (for API)
+          </a>
+          <a
+            href="https://whatsapp.com/channel/0029Vb6dhS29RZAV6wpMYj3W"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="whatsapp"
+          >
+            <img src="/whatsapp.png" alt="whatsapp" className="logo" /> Saluran WhatsApp
+          </a>
+        </footer>
+      </div>
+    </>
+  );
 }
