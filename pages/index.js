@@ -1,16 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleDownload = async () => {
     if (!url) {
       alert("Masukkan URL TikTok terlebih dahulu");
       return;
     }
-
     setLoading(true);
     setResult(null);
 
@@ -31,35 +35,41 @@ export default function Home() {
     }
   };
 
-  const downloadFile = (fileUrl, filename) => {
+  const handleProxyDownload = (fileUrl, type, title) => {
+    if (typeof window === "undefined") return;
+
+    const safeTitle = title.replace(/[^\w\s-]/g, "").replace(/\s+/g, "_");
+    const fileName = `RAFZ-TIKLOAD-${safeTitle}.${type}`;
+
     const link = document.createElement("a");
-    link.href = `/api/proxy?url=${encodeURIComponent(fileUrl)}&filename=${filename}`;
-    link.setAttribute("download", filename);
+    link.href = `/api/proxy?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(fileName)}`;
+    link.download = fileName;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 text-white">
-      <div className="max-w-2xl w-full text-center">
-        {/* Judul */}
-        <h1 className="text-3xl md:text-4xl font-bold mb-6 drop-shadow-lg">
-          TikTok Downloader
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 p-6">
+      <div className="bg-white text-gray-900 rounded-2xl shadow-lg p-6 w-full max-w-lg">
+        {/* Header */}
+        <h1 className="text-center text-lg font-bold text-white bg-blue-600 rounded-lg py-2 mb-4">
+          TiKLoad BY RAFZ
+          <span className="block text-xs font-normal">Tanpa Watermark dan FREE!!</span>
         </h1>
 
-        {/* Input */}
-        <div className="flex bg-white rounded-2xl overflow-hidden shadow-md">
+        {/* Input + tombol */}
+        <div className="flex gap-2 mb-4">
           <input
             type="text"
-            placeholder="Tempel URL TikTok di sini..."
+            placeholder="https://vt.tiktok.com/xxxxx"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 px-4 py-3 text-black outline-none"
+            className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
           />
           <button
             onClick={handleDownload}
-            className="bg-blue-600 hover:bg-blue-700 px-6 text-white font-semibold"
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold"
           >
             {loading ? "Loading..." : "Download"}
           </button>
@@ -67,61 +77,111 @@ export default function Home() {
 
         {/* Hasil */}
         {result && (
-          <div className="mt-8 bg-white text-black rounded-2xl p-5 shadow-lg">
-            <h2 className="text-lg font-semibold mb-4">{result.title}</h2>
-
-            {/* Jika video */}
-            {result.play && (
-              <div className="mb-4">
-                <video
-                  controls
-                  src={result.play}
-                  className="w-full rounded-xl"
-                />
-                <button
-                  onClick={() => downloadFile(result.play, "video.mp4")}
-                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium"
-                >
-                  ⬇ Download Video
-                </button>
-              </div>
+          <div className="mt-4 space-y-3 text-center">
+            {result.cover && (
+              <img
+                src={result.cover}
+                alt="Thumbnail"
+                className="rounded-lg shadow-md mx-auto"
+              />
             )}
+            <p className="font-semibold">{result.title}</p>
 
-            {/* Jika foto */}
-            {result.images && result.images.length > 0 && (
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {result.images.map((img, i) => (
-                  <div key={i} className="relative">
-                    <img
-                      src={img}
-                      alt={`Image ${i}`}
-                      className="rounded-xl shadow-md"
-                    />
+            {mounted && (
+              <div className="flex flex-col gap-2">
+                {result.play && (
+                  <button
+                    onClick={() => handleProxyDownload(result.play, "mp4", result.title)}
+                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-semibold"
+                  >
+                    ⬇ Unduh Video
+                  </button>
+                )}
+
+                {result.music && (
+                  <button
+                    onClick={() => handleProxyDownload(result.music, "mp3", result.title)}
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-semibold"
+                  >
+                    🎵 Unduh Audio
+                  </button>
+                )}
+
+                {result.images &&
+                  result.images.length > 0 &&
+                  result.images.map((img, idx) => (
                     <button
-                      onClick={() => downloadFile(img, `photo-${i + 1}.jpg`)}
-                      className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-md"
+                      key={idx}
+                      onClick={() =>
+                        handleProxyDownload(img, "jpg", `${result.title}-${idx + 1}`)
+                      }
+                      className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-white font-semibold"
                     >
-                      ⬇
+                      🖼️ Unduh Foto {idx + 1}
                     </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Jika audio */}
-            {result.music && (
-              <div>
-                <audio controls src={result.music} className="w-full mb-2" />
-                <button
-                  onClick={() => downloadFile(result.music, "audio.mp3")}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-medium"
-                >
-                  ⬇ Download Audio
-                </button>
+                  ))}
               </div>
             )}
           </div>
         )}
+
+        {/* Footer */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p className="mb-2">Coba produk kami yang lain:</p>
+          <button
+            onClick={() => alert("Masih dalam pengembangan!")}
+            className="mx-1 text-blue-600 font-semibold"
+          >
+            GRAMLOAD
+          </button>
+          ·
+          <button
+            onClick={() => alert("Masih dalam pengembangan!")}
+            className="mx-1 text-blue-600 font-semibold"
+          >
+            BOOKLOAD
+          </button>
+          ·
+          <button
+            onClick={() => alert("Masih dalam pengembangan!")}
+            className="mx-1 text-blue-600 font-semibold"
+          >
+            THREADS DL
+          </button>
+          ·
+          <button
+            onClick={() => alert("Masih dalam pengembangan!")}
+            className="mx-1 text-blue-600 font-semibold"
+          >
+            X DL
+          </button>
+
+          <div className="mt-3">
+            <a
+              href="https://whatsapp.com/channel/0029Vb6dhS29RZAV6wpMYj3W"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg"
+            >
+              <img src="/whatsapp.svg" alt="WhatsApp" className="w-5 h-5" />
+              Saluran WhatsApp kami
+            </a>
+          </div>
+
+          <div className="mt-4 flex justify-center items-center gap-2">
+            <a
+              href="https://www.tikwm.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-blue-600 font-semibold"
+            >
+              <img src="/tikwm.png" alt="Tikwm" className="w-6 h-6" />
+              TIKWM (for API)
+            </a>
+          </div>
+
+          <p className="mt-2 text-xs">Made with ❤️ by Rafz</p>
+        </div>
       </div>
     </div>
   );
