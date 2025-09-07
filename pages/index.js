@@ -22,6 +22,16 @@ export default function Home() {
     }
   };
 
+  // Fungsi paksa download file
+  const triggerDownload = (fileUrl, filename) => {
+    const link = document.createElement("a");
+    link.href = fileUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       {/* HEADER */}
@@ -72,32 +82,29 @@ export default function Home() {
         {/* TOMBOL DOWNLOAD */}
         {media && (
           <div className="mt-4 flex flex-col gap-2">
-            {media.type === "video" && (
-              <a
-                href={media.video}
-                download
+            {media.type === "video" && media.video && (
+              <button
+                onClick={() => triggerDownload(media.video, "tiktok_video.mp4")}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 Download Video
-              </a>
+              </button>
             )}
-            {media.type === "image" && (
-              <a
-                href={media.image}
-                download
+            {media.type === "image" && media.image && (
+              <button
+                onClick={() => triggerDownload(media.image, "tiktok_photo.jpg")}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 Download Foto
-              </a>
+              </button>
             )}
             {media.audio && (
-              <a
-                href={media.audio}
-                download
+              <button
+                onClick={() => triggerDownload(media.audio, "tiktok_audio.mp3")}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
               >
                 Download Audio
-              </a>
+              </button>
             )}
           </div>
         )}
@@ -110,10 +117,30 @@ export default function Home() {
       <div className="mt-6 text-center">
         <p className="mb-2 font-semibold">Coba Produk kami yang lain</p>
         <div className="flex gap-4 justify-center text-blue-600 underline">
-          <a href="#">GRAMLOAD</a>
-          <a href="#">BOOKLOAD</a>
-          <a href="#">THREADS DL</a>
-          <a href="#">X DL</a>
+          <a
+            href="#"
+            onClick={() => alert("Masih dalam pengembangan!")}
+          >
+            GRAMLOAD
+          </a>
+          <a
+            href="#"
+            onClick={() => alert("Masih dalam pengembangan!")}
+          >
+            BOOKLOAD
+          </a>
+          <a
+            href="#"
+            onClick={() => alert("Masih dalam pengembangan!")}
+          >
+            THREADS DL
+          </a>
+          <a
+            href="#"
+            onClick={() => alert("Masih dalam pengembangan!")}
+          >
+            X DL
+          </a>
         </div>
       </div>
 
