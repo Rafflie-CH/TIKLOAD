@@ -1,40 +1,40 @@
 export default async function handler(req, res) {
   try {
-    const { file, filename } = req.query;
-    if (!file) {
-      return res.status(400).json({ success: false, message: "File URL missing" });
+    const { url } = req.query;
+
+    if (!url) {
+      return res.status(400).json({ success: false, message: "Missing URL" });
     }
 
-    // Fetch dengan header tambahan
-    const response = await fetch(file, {
+    // Forward request ke TikWM (atau URL video asli)
+    const response = await fetch(url, {
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115 Safari/537.36",
-        Referer: "https://www.tikwm.com/",
-        Range: "bytes=0-",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "*/*",
       },
     });
 
-    if (!response.ok || !response.body) {
+    if (!response.ok) {
       return res
-        .status(response.status || 500)
-        .json({ success: false, message: "Proxy gagal ambil file" });
+        .status(response.status)
+        .json({ success: false, message: "Failed to fetch from source" });
     }
 
-    const safeName = filename ? filename : "RAFZ-TIKLOAD-media";
+    // Ambil hasil sebagai buffer
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
+    // Kirim balik ke client dengan header yang sesuai
     res.setHeader(
       "Content-Type",
       response.headers.get("content-type") || "application/octet-stream"
     );
-    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+    res.setHeader("Content-Disposition", "attachment; filename=download");
 
-    // Pipe langsung ke response
-    response.body.pipe(res);
+    res.send(buffer);
   } catch (error) {
-    console.error("Proxy Error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error (proxy failed)" });
+    console.error("Proxy error:", error);
+    res.status(500).json({ success: false, message: "Server error (proxy failed)" });
   }
 }
