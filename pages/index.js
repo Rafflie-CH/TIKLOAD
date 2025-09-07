@@ -51,6 +51,19 @@ export default function Home() {
   };
 
   return (
+<>
+    <Head>
+  <title>TiKLoad BY RAFZ (Rafflie aditya) - Tiktok Downloader Tanpa Watermark</title>
+  <meta name="description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah" />
+  
+  {/* Open Graph Meta Tags */}
+  <meta property="og:title" content="TiKLoad BY RAFZ - Tiktok Downloader" />
+  <meta property="og:description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah" />
+  <meta property="og:image" content="https://tikload.rafzhost.xyz/logo.png" />
+  <meta property="og:url" content="https://tikload.rafzhost.xyz" />
+  <meta property="og:type" content="website" />
+</Head>
+    
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 p-6">
       <div className="bg-white text-gray-900 rounded-2xl shadow-lg p-6 w-full max-w-lg">
         {/* Header */}
@@ -185,5 +198,6 @@ export default function Home() {
         </div>
       </div>
     </div>
-  );
+                </>
+                );
 }
