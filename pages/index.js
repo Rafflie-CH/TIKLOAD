@@ -1,19 +1,16 @@
-// pages/index.js
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
-  const [isClient, setIsClient] = useState(false);
-
-  // supaya Next.js tidak error SSR
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const handleDownload = async () => {
-    if (!url) return;
+    if (!url) {
+      alert("Masukkan URL TikTok terlebih dahulu");
+      return;
+    }
+
     setLoading(true);
     setResult(null);
 
@@ -21,131 +18,110 @@ export default function Home() {
       const res = await fetch(`/api/download?url=${encodeURIComponent(url)}`);
       const data = await res.json();
 
-      if (data.success) {
-        setResult(data);
-      } else {
-        alert(data.message || "Gagal mengambil data.");
+      if (!data.success) {
+        alert("Gagal mengambil data");
+        return;
       }
+      setResult(data);
     } catch (err) {
-      alert("Terjadi kesalahan server.");
+      console.error("Error:", err);
+      alert("Terjadi kesalahan server");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleProxyDownload = (fileUrl, type, title) => {
-    if (typeof window === "undefined") return; // cegah error SSR
-
-    const fileName = `RAFZ-TIKLOAD-${title}.${type}`;
+  const downloadFile = (fileUrl, filename) => {
     const link = document.createElement("a");
-    link.href = `/api/proxy?url=${encodeURIComponent(fileUrl)}&filename=${encodeURIComponent(fileName)}`;
-    link.download = fileName;
+    link.href = `/api/proxy?url=${encodeURIComponent(fileUrl)}&filename=${filename}`;
+    link.setAttribute("download", filename);
     document.body.appendChild(link);
     link.click();
-    link.remove();
+    document.body.removeChild(link);
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-900 via-blue-700 to-blue-500 text-white p-6">
-      <div className="bg-white text-gray-900 rounded-2xl shadow-2xl p-6 w-full max-w-lg">
-        <h1 className="text-2xl font-bold text-center mb-4">
-          TIKLOAD BY RAFZ
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 text-white">
+      <div className="max-w-2xl w-full text-center">
+        {/* Judul */}
+        <h1 className="text-3xl md:text-4xl font-bold mb-6 drop-shadow-lg">
+          TikTok Downloader
         </h1>
 
-        <div className="flex gap-2 mb-4">
+        {/* Input */}
+        <div className="flex bg-white rounded-2xl overflow-hidden shadow-md">
           <input
             type="text"
             placeholder="Tempel URL TikTok di sini..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none"
+            className="flex-1 px-4 py-3 text-black outline-none"
           />
           <button
             onClick={handleDownload}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-semibold"
+            className="bg-blue-600 hover:bg-blue-700 px-6 text-white font-semibold"
           >
-            {loading ? "Loading..." : "Unduh"}
+            {loading ? "Loading..." : "Download"}
           </button>
         </div>
 
+        {/* Hasil */}
         {result && (
-          <div className="mt-4 space-y-3">
-            {result.cover && (
-              <img
-                src={result.cover}
-                alt="Thumbnail"
-                className="rounded-lg shadow-md mx-auto"
-              />
+          <div className="mt-8 bg-white text-black rounded-2xl p-5 shadow-lg">
+            <h2 className="text-lg font-semibold mb-4">{result.title}</h2>
+
+            {/* Jika video */}
+            {result.play && (
+              <div className="mb-4">
+                <video
+                  controls
+                  src={result.play}
+                  className="w-full rounded-xl"
+                />
+                <button
+                  onClick={() => downloadFile(result.play, "video.mp4")}
+                  className="mt-3 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-xl font-medium"
+                >
+                  ⬇ Download Video
+                </button>
+              </div>
             )}
-            <p className="text-center font-semibold">{result.title}</p>
 
-            {isClient && (
-              <div className="flex flex-col gap-2">
-                {result.play && (
-                  <button
-                    onClick={() =>
-                      handleProxyDownload(result.play, "mp4", result.title)
-                    }
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-semibold"
-                  >
-                    Unduh Video
-                  </button>
-                )}
-
-                {result.music && (
-                  <button
-                    onClick={() =>
-                      handleProxyDownload(result.music, "mp3", result.title)
-                    }
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-white font-semibold"
-                  >
-                    Unduh Audio
-                  </button>
-                )}
-
-                {result.images &&
-                  result.images.length > 0 &&
-                  result.images.map((img, idx) => (
+            {/* Jika foto */}
+            {result.images && result.images.length > 0 && (
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {result.images.map((img, i) => (
+                  <div key={i} className="relative">
+                    <img
+                      src={img}
+                      alt={`Image ${i}`}
+                      className="rounded-xl shadow-md"
+                    />
                     <button
-                      key={idx}
-                      onClick={() =>
-                        handleProxyDownload(img, "jpg", `${result.title}-${idx + 1}`)
-                      }
-                      className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-white font-semibold"
+                      onClick={() => downloadFile(img, `photo-${i + 1}.jpg`)}
+                      className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-md"
                     >
-                      Unduh Foto {idx + 1}
+                      ⬇
                     </button>
-                  ))}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Jika audio */}
+            {result.music && (
+              <div>
+                <audio controls src={result.music} className="w-full mb-2" />
+                <button
+                  onClick={() => downloadFile(result.music, "audio.mp3")}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-xl font-medium"
+                >
+                  ⬇ Download Audio
+                </button>
               </div>
             )}
           </div>
         )}
-
-        <footer className="mt-6 text-center text-sm text-gray-500">
-          Thanks to{" "}
-          <a
-            href="https://www.tikwm.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 font-bold"
-          >
-            <img
-              src="/tikwm-logo.png"
-              alt="Tikwm"
-              className="inline h-5 mx-1"
-            />
-          </a>
-          | Join Saluran WhatsApp{" "}
-          <a
-            href="https://wa.me/xxxxxx"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center text-green-600 font-bold"
-          >
-            <img src="/whatsapp.png" alt="WA" className="h-5 mr-1" />
-            Klik di sini
-          </a>
-        </footer>
       </div>
     </div>
   );
