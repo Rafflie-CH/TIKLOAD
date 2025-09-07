@@ -1,4 +1,3 @@
-// pages/api/download.js
 export default async function handler(req, res) {
   const { url } = req.query;
 
@@ -7,7 +6,6 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Panggil API TikWM
     const apiRes = await fetch("https://www.tikwm.com/api/", {
       method: "POST",
       headers: {
@@ -18,10 +16,14 @@ export default async function handler(req, res) {
 
     const data = await apiRes.json();
 
-    if (data?.data?.play) {
-      return res.status(200).json({ video: data.data.play });
+    if (data?.data) {
+      return res.status(200).json({
+        video: data.data.play || null,
+        audio: data.data.music || null,
+        images: data.data.images || [],
+      });
     } else {
-      return res.status(500).json({ error: "Gagal mengambil video" });
+      return res.status(500).json({ error: "Gagal mengambil data" });
     }
   } catch (err) {
     console.error(err);
