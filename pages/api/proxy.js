@@ -1,26 +1,25 @@
 export default async function handler(req, res) {
-  const { file, filename } = req.query;
-
-  if (!file) {
-    return res.status(400).send("File URL kosong");
-  }
-
   try {
-    const response = await fetch(file);
-
-    if (!response.ok) {
-      return res.status(500).send("Gagal fetch file");
+    const { file, filename } = req.query;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "File URL missing" });
     }
 
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename="${filename || "download"}"`
-    );
-    res.setHeader("Content-Type", response.headers.get("content-type"));
+    const response = await fetch(file);
+    if (!response.ok) {
+      return res.status(500).json({ success: false, message: "Gagal fetch file" });
+    }
 
-    response.body.pipe(res);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error server proxy");
+    const safeName = filename ? filename : "RAFZ-TIKLOAD-media";
+
+    res.setHeader("Content-Type", response.headers.get("content-type") || "application/octet-stream");
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+
+    const buffer = Buffer.from(await response.arrayBuffer());
+    res.send(buffer);
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 }
