@@ -56,14 +56,16 @@ export default function Home() {
 <React.Fragment>
     <Head>
   <title>TiKLoad BY RAFZ (Rafflie aditya) - Tiktok Downloader Tanpa Watermark</title>
-  <meta name="description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah dan tampa iklan lhoo!" />
 
-    {/* Favicon */}
-<link rel="icon" href="/favicon.ico" />
-    
-  {/* Open Graph Meta Tags */}
+  <meta
+    name="description"
+    content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah dan tampa iklan lhoo!"
+  />
+
+  <link rel="icon" href="/favicon.ico" />
+
   <meta property="og:title" content="TiKLoad BY RAFZ - Tiktok Downloader" />
-  <meta property="og:description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah dan tanpa iklan lhoo!" />
+  <meta property="og:description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ." />
   <meta property="og:image" content="https://tikload.rafzhost.xyz/logo.png" />
   <meta property="og:url" content="https://tikload.rafzhost.xyz" />
   <meta property="og:type" content="website" />
