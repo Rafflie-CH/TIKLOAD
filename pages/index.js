@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import { useState, useEffect } from "react";
+import React from "react";
 
 export default function Home() {
   const [url, setUrl] = useState("");
@@ -52,7 +53,7 @@ export default function Home() {
   };
 
   return (
-<>
+<React.Fragment>
     <Head>
   <title>TiKLoad BY RAFZ (Rafflie aditya) - Tiktok Downloader Tanpa Watermark</title>
   <meta name="description" content="Download video TikTok tanpa watermark secara gratis dan cepat dengan TiKLoad BY RAFZ. 100% FREE! No password dan tanpa login ya ges yah dan tampa iklan lhoo!" />
@@ -245,6 +246,6 @@ export default function Home() {
         </div>
       </div>
     </div>
-                </>
+                </React.Fragment>
                 );
 }
