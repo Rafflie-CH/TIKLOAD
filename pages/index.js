@@ -242,7 +242,7 @@ export default function Home() {
             </a>
           </div>
 
-          <p className="mt-2 text-xs" dangerouslySetInnerHTML={{ __html: 'Made with ❤️ by Rafz (Rafflie Aditya)'}}/>
+          <p className="mt-2 text-xs" dangerouslySetInnerHTML={{ __html: 'Made with ' + String.fromCodePoint(0x2764, 0xFE0F) + ' by Rafz (Rafflie Aditya)', }} />
         </div>
       </div>
     </div>
