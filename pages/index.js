@@ -242,7 +242,7 @@ export default function Home() {
             </a>
           </div>
 
-          <p className="mt-2 text-xs">Made with ❤️ by Rafz (Rafflie Aditya)</p>
+          <p className="mt-2 text-xs">Made with <span>❤️</span> by Rafz (Rafflie Aditya)</p>
         </div>
       </div>
     </div>
