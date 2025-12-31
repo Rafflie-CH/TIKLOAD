@@ -53,7 +53,7 @@ export default function Home() {
   };
 
   return (
-<React.Fragment>
+<div>
     <Head>
   <title>TiKLoad BY RAFZ (Rafflie aditya) - Tiktok Downloader Tanpa Watermark</title>
 
@@ -248,6 +248,6 @@ export default function Home() {
         </div>
       </div>
     </div>
-                </React.Fragment>
+                </div>
                 );
 }
