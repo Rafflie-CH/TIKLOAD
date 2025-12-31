@@ -6,6 +6,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [mounted, setMounted] = useState(false);
+  const [previewImg, setPreviewImg] = useState(null)
 
   useEffect(() => {
     setMounted(true);
@@ -125,23 +126,66 @@ export default function Home() {
                 )}
 
                 {result.images &&
-                  result.images.length > 0 &&
-                  result.images.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() =>
-                        handleProxyDownload(img, "jpg", `${result.title}-${idx + 1}`)
-                      }
-                      className="px-4 py-2 bg-pink-600 hover:bg-pink-700 rounded-lg text-white font-semibold"
-                    >
-                      🖼️ Unduh Foto {idx + 1}
-                    </button>
-                  ))}
-              </div>
-            )}
-          </div>
-        )}
+  result.images.length > 0 &&
+  result.images.map((img, idx) => (
+    <div
+      key={idx}
+      className="flex items-center gap-3 bg-pink-600 rounded-lg p-2"
+    >
+      {/* thumbnail */}
+      <img
+        src={img}
+        alt={`Foto ${idx + 1}`}
+        className="w-14 h-14 object-cover rounded-md border border-white"
+        loading="lazy"
+      />
 
+      {/* tombol lihat (HIJAU) */}
+      <button
+        onClick={() => setPreviewImg(img)}
+        className="px-3 py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white font-semibold"
+      >
+        👁 Lihat
+      </button>
+
+      {/* tombol download */}
+      <button
+        onClick={() =>
+          handleProxyDownload(img, "jpg", `${result.title}-${idx + 1}`)
+        }
+        className="flex-1 px-3 py-2 bg-pink-700 hover:bg-pink-800 rounded-lg text-white font-semibold text-left"
+      >
+        🖼️ Unduh Foto {idx + 1}
+      </button>
+    </div>
+  ))}
+
+{previewImg && (
+  <div
+    className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
+    onClick={() => setPreviewImg(null)}
+  >
+    <div
+      className="relative max-w-[95%] max-h-[95%]"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => setPreviewImg(null)}
+        className="absolute -top-4 -right-4 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 font-bold z-10"
+      >
+        ✕
+      </button>
+
+      <div className="overflow-auto max-h-[90vh]">
+        <img
+          src={previewImg}
+          className="max-w-full rounded-lg"
+          style={{ touchAction: "pinch-zoom" }}
+        />
+      </div>
+    </div>
+  </div>
+)}
         {/* Footer */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <p className="mb-2">Coba produk kami yang lain:</p>
